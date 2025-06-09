@@ -1,0 +1,41 @@
+name: Build and Release Oni2 AppImage
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout oni2-binary repo
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Run Oni2 build script
+        run: |
+          chmod +x ./buid.sh
+          ./buid.sh
+
+      - name: Find AppImage artifact
+        id: find_appimage
+        run: |
+          APPIMAGE=$(find oni2/_release -name '*.AppImage' | head -n 1)
+          echo "appimage_path=$APPIMAGE" >> $GITHUB_OUTPUT
+
+      - name: Upload AppImage as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Oni2-AppImage
+          path: ${{ steps.find_appimage.outputs.appimage_path }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.find_appimage.outputs.appimage_path }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
