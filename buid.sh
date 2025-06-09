@@ -2,6 +2,10 @@
 git clone https://github.com/onivim/oni2
 cd oni2
 
+# Patch Dockerfile to use almalinux:8 instead of centos:latest
+grep -q '^FROM centos:latest' scripts/docker/centos/Dockerfile && \
+sed -i 's|^FROM centos:latest|FROM almalinux:8|' scripts/docker/centos/Dockerfile || true
+
 # Use our included script to setup a docker container
 docker build --network=host -t centos scripts/docker/centos
 
